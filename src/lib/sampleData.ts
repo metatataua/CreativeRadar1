@@ -163,68 +163,43 @@ const DEFAULT_HOOKS = [
 ];
 
 const SETTING_FLAVORS: Record<string, { noun: string; adj: string; titlePrefix: string[] }> = {
-  Mafia: { noun: 'Don', adj: 'underground', titlePrefix: ['The Don\'s', 'Blood', 'Mafia King\'s', 'Underworld', 'The Capo\'s'] },
-  Historical: { noun: 'Duke', adj: 'imperial', titlePrefix: ['The Duchess', 'Crown', 'Empire', 'The Earl\'s', 'Kingdom'] },
-  Sports: { noun: 'Captain', adj: 'championship', titlePrefix: ['Game Day', 'The Playmaker\'s', 'Final Score', 'Off Season', 'Match Point'] },
-  Fantasy: { noun: 'Prince', adj: 'enchanted', titlePrefix: ['The Dragon\'s', 'Crown of Ash', 'Shadow Realm', 'The Heir\'s', 'Cursed'] },
-  Office: { noun: 'CEO', adj: 'corporate', titlePrefix: ['Boardroom', 'Corner Office', 'The Executive\'s', 'Q4 Love', 'The Merger'] },
-  Vampire: { noun: 'Lord', adj: 'immortal', titlePrefix: ['Eternal', 'Blood Moon', 'The Count\'s', 'Immortal', 'Crimson'] },
-  College: { noun: 'President', adj: 'campus', titlePrefix: ['Campus Crush', 'Dorm Room', 'Finals Week', 'Frat House', 'The TA\'s'] },
-  'Royal Court': { noun: 'Prince', adj: 'royal', titlePrefix: ['The Crown\'s', 'Palace Walls', 'Royal Guard\'s', 'The King\'s', 'Throne'] },
-  Military: { noun: 'Commander', adj: 'classified', titlePrefix: ['Code Name', 'Operation Love', 'The Colonel\'s', 'Base Camp', 'Classified'] },
-  Werewolf: { noun: 'Alpha', adj: 'primal', titlePrefix: ['Moon Claim', 'The Alpha\'s', 'Pack Bond', 'Full Moon', 'Marked by'] },
-  'Billionaire Mansion': { noun: 'Heir', adj: 'elite', titlePrefix: ['The Penthouse', 'Heir Apparent', 'Old Money', 'The Estate\'s', 'Billion Dollar'] },
+  Mafia: { noun: 'Don', adj: 'underground', titlePrefix: ["The Don's", 'Blood', "Mafia King's", 'Underworld', "The Capo's"] },
+  Historical: { noun: 'Duke', adj: 'imperial', titlePrefix: ['The Duchess', 'Crown', 'Empire', "The Earl's", 'Kingdom'] },
+  Sports: { noun: 'Captain', adj: 'championship', titlePrefix: ['Game Day', "The Playmaker's", 'Final Score', 'Off Season', 'Match Point'] },
+  Fantasy: { noun: 'Prince', adj: 'enchanted', titlePrefix: ["The Dragon's", 'Crown of Ash', 'Shadow Realm', "The Heir's", 'Cursed'] },
+  Office: { noun: 'CEO', adj: 'corporate', titlePrefix: ['Boardroom', 'Corner Office', "The Executive's", 'Q4 Love', 'The Merger'] },
+  Vampire: { noun: 'Lord', adj: 'immortal', titlePrefix: ['Eternal', 'Blood Moon', "The Count's", 'Immortal', 'Crimson'] },
+  College: { noun: 'President', adj: 'campus', titlePrefix: ['Campus Crush', 'Dorm Room', 'Finals Week', 'Frat House', "The TA's"] },
+  'Royal Court': { noun: 'Prince', adj: 'royal', titlePrefix: ["The Crown's", 'Palace Walls', "Royal Guard's", "The King's", 'Throne'] },
+  Military: { noun: 'Commander', adj: 'classified', titlePrefix: ['Code Name', 'Operation Love', "The Colonel's", 'Base Camp', 'Classified'] },
+  Werewolf: { noun: 'Alpha', adj: 'primal', titlePrefix: ['Moon Claim', "The Alpha's", 'Pack Bond', 'Full Moon', 'Marked by'] },
+  'Billionaire Mansion': { noun: 'Heir', adj: 'elite', titlePrefix: ['The Penthouse', 'Heir Apparent', 'Old Money', "The Estate's", 'Billion Dollar'] },
 };
 
 const DEFAULT_FLAVOR = { noun: 'Hero', adj: 'dramatic', titlePrefix: ['The Secret', 'Hidden', 'Unexpected', 'Forbidden', 'The Last'] };
 
-// ─── Link generators ──────────────────────────────────────────────────────────
-function tiktokLink(seed: number) {
-  const id = `72${seed.toString().padStart(17, '0').slice(0, 17)}`;
-  return `https://www.tiktok.com/@verticaldrama.shorts/video/${id}`;
-}
-
-function youtubeLink(seed: number) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
-  let id = '';
-  let s = seed;
-  for (let i = 0; i < 11; i++) { id += chars[s % chars.length]; s = Math.floor(s / chars.length) + 7; }
-  return `https://www.youtube.com/shorts/${id}`;
-}
-
-function instagramLink(seed: number) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
-  let id = '';
-  let s = seed;
-  for (let i = 0; i < 11; i++) { id += chars[s % chars.length]; s = Math.floor(s / chars.length) + 13; }
-  return `https://www.instagram.com/reel/${id}/`;
-}
-
-function metaAdLink(seed: number) {
-  return `https://www.facebook.com/ads/library/?id=${seed.toString().padStart(15, '1')}`;
-}
-
-function socialPetaLink(seed: number) {
-  return `https://app.socialpeta.com/creative/detail?id=${seed.toString().padStart(8, '0')}`;
+// ─── Query builder (used for real API calls when keys are present) ─────────────
+export function buildSearchQuery(genres: string[], setting: string, extra = '') {
+  const parts = [...genres.slice(0, 2), setting, extra].filter(Boolean);
+  return parts.join(' ') + ' short drama series';
 }
 
 // ─── Block 1 – Vertical Series ────────────────────────────────────────────────
-function buildCreatives(seriesSeed: number, genreHookList: string[]): Creative[] {
+function buildCreatives(seriesSeed: number, genreHookList: string[], searchQuery: string): Creative[] {
   const tiers: PerformanceTier[] = ['Golden Frame', 'Golden Frame', 'Silver Tier', 'Silver Tier', 'Standard'];
-  return Array.from({ length: 5 }, (_, i) => {
-    const s = seeded(seriesSeed + i * 17, 1000, 9999);
-    return {
-      id: `cr-${seriesSeed}-${i}`,
-      name: `Creative #${String(i + 1).padStart(2, '0')} — ${['Hook Open', 'Conflict Peak', 'Cliffhanger', 'Resolution Tease', 'Reaction Bait'][i]}`,
-      activeLink: socialPetaLink(seriesSeed + i * 100),
-      activeDays: seeded(seriesSeed + i, 21, 112),
-      impressions: seeded(seriesSeed + i * 3, 800_000, 12_000_000),
-      ctr: parseFloat((seeded(seriesSeed + i * 7, 18, 72) / 10).toFixed(1)),
-      spend: seeded(seriesSeed + i * 11, 2000, 48000),
-      performanceTier: tiers[i],
-      hook: genreHookList[i % genreHookList.length],
-    };
-  });
+  return Array.from({ length: 5 }, (_, i) => ({
+    id: `cr-${seriesSeed}-${i}`,
+    name: `Creative #${String(i + 1).padStart(2, '0')} — ${['Hook Open', 'Conflict Peak', 'Cliffhanger', 'Resolution Tease', 'Reaction Bait'][i]}`,
+    // No link — links only come from real API sources (Apify, SocialPeta)
+    activeLink: undefined,
+    searchQuery: searchQuery + [' ads', ' viral', ' top creative', ' best performing', ''][i],
+    activeDays: seeded(seriesSeed + i, 21, 112),
+    impressions: seeded(seriesSeed + i * 3, 800_000, 12_000_000),
+    ctr: parseFloat((seeded(seriesSeed + i * 7, 18, 72) / 10).toFixed(1)),
+    spend: seeded(seriesSeed + i * 11, 2000, 48000),
+    performanceTier: tiers[i],
+    hook: genreHookList[i % genreHookList.length],
+  }));
 }
 
 function buildSeries(filters: FilterState): Series[] {
@@ -232,20 +207,23 @@ function buildSeries(filters: FilterState): Series[] {
   const hooks = GENRE_HOOKS[primaryGenre] || DEFAULT_HOOKS;
   const flavor = SETTING_FLAVORS[filters.customSetting || filters.setting] || DEFAULT_FLAVOR;
   const baseSeed = hash(`${filters.genres.join(',')}-${filters.setting}-${filters.customSetting}-${filters.customKeywords}`);
+  const setting = filters.customSetting || filters.setting;
+  const TITLE_SUFFIXES = ["Season 1", "Complete Arc", "Full Series", "Director's Cut", "Extended Edition"];
+  const suffixes = ['Obsession', 'Secret', 'Promise', 'Surrender', 'Contract'];
 
-  const TITLE_SUFFIXES = ['Season 1', 'Complete Arc', 'Full Series', 'Director\'s Cut', 'Extended Edition'];
   return Array.from({ length: 5 }, (_, i) => {
     const seriesSeed = baseSeed + i * 1337;
     const prefix = flavor.titlePrefix[i % flavor.titlePrefix.length];
-    const suffix = ['Obsession', 'Secret', 'Promise', 'Surrender', 'Contract'][i];
+    const genre = filters.genres[i % Math.max(filters.genres.length, 1)] || primaryGenre;
+    const query = buildSearchQuery([genre], setting, filters.customKeywords || suffixes[i]);
     return {
       id: `series-${i}`,
-      title: `${prefix} ${suffix} — ${TITLE_SUFFIXES[i]}`,
+      title: `${prefix} ${suffixes[i]} — ${TITLE_SUFFIXES[i]}`,
       totalImpressions: seeded(seriesSeed, 15_000_000, 280_000_000),
       runDurationWeeks: seeded(seriesSeed + 5, 4, 26),
       platform: 'SocialPeta',
-      genre: filters.genres[i % Math.max(filters.genres.length, 1)] || primaryGenre,
-      topCreatives: buildCreatives(seriesSeed, hooks),
+      genre,
+      topCreatives: buildCreatives(seriesSeed, hooks, query),
     };
   }).sort((a, b) => b.totalImpressions - a.totalImpressions);
 }
@@ -255,33 +233,39 @@ function buildHorizontalContent(filters: FilterState): Record<Platform, Horizont
   const primaryGenre = filters.genres[0] || 'Romance';
   const hooks = GENRE_HOOKS[primaryGenre] || DEFAULT_HOOKS;
   const baseSeed = hash(`h2-${filters.genres.join(',')}-${filters.setting}-${filters.customKeywords}`);
+  const setting = filters.customSetting || filters.setting;
 
-  const PLATFORM_CONFIGS: { platform: Platform; linkFn: (s: number) => string; minViews: number; maxViews: number }[] = [
-    { platform: 'TikTok', linkFn: tiktokLink, minViews: 2_100_000, maxViews: 18_000_000 },
-    { platform: 'Meta', linkFn: metaAdLink, minViews: 1_000_000, maxViews: 8_500_000 },
-    { platform: 'YouTube', linkFn: youtubeLink, minViews: 1_200_000, maxViews: 12_000_000 },
-    { platform: 'Instagram', linkFn: instagramLink, minViews: 850_000, maxViews: 6_000_000 },
+  const PLATFORM_CONFIGS: { platform: Platform; minViews: number; maxViews: number }[] = [
+    { platform: 'TikTok', minViews: 2_100_000, maxViews: 18_000_000 },
+    { platform: 'Meta', minViews: 1_000_000, maxViews: 8_500_000 },
+    { platform: 'YouTube', minViews: 1_200_000, maxViews: 12_000_000 },
+    { platform: 'Instagram', minViews: 850_000, maxViews: 6_000_000 },
   ];
 
   const result: Record<string, HorizontalContent[]> = {};
 
-  PLATFORM_CONFIGS.forEach(({ platform, linkFn, minViews, maxViews }) => {
+  PLATFORM_CONFIGS.forEach(({ platform, minViews, maxViews }) => {
     const platformSeed = baseSeed + platform.charCodeAt(0) * 999;
     result[platform] = Array.from({ length: 5 }, (_, i) => {
       const s = platformSeed + i * 421;
       const views = seeded(s, minViews, maxViews);
       const er = parseFloat((seeded(s + 3, 30, 120) / 10).toFixed(1));
+      const genre = filters.genres[i % Math.max(filters.genres.length, 1)] || primaryGenre;
+      const searchQuery = buildSearchQuery([genre], setting, filters.customKeywords);
+
       return {
         id: `h2-${platform}-${i}`,
         platform,
-        title: `${platform} Viral ${i + 1}: ${(filters.genres[i % Math.max(filters.genres.length, 1)] || primaryGenre)} Story`,
+        title: `${platform} Viral ${i + 1}: ${genre} Story`,
         hook: hooks[i % hooks.length],
-        videoLink: linkFn(s),
+        // No link — will be populated by Apify/TikTok API when key is present
+        videoLink: undefined,
+        searchQuery,
         views,
         engagementRate: er,
         likes: Math.floor(views * (er / 100) * 0.7),
         reposts: Math.floor(views * (er / 100) * 0.3),
-        genre: filters.genres[i % Math.max(filters.genres.length, 1)] || primaryGenre,
+        genre,
       };
     }).sort((a, b) => b.views - a.views);
   });
@@ -295,20 +279,26 @@ function buildInternalCreatives(filters: FilterState): InternalCreative[] {
   const hooks = GENRE_HOOKS[primaryGenre] || DEFAULT_HOOKS;
   const baseSeed = hash(`db-${filters.genres.join(',')}-${filters.setting}-${filters.customKeywords}`);
   const statuses: ('Active' | 'Paused' | 'Archived')[] = ['Active', 'Active', 'Active', 'Paused', 'Archived'];
-  const platforms = ['TikTok', 'Meta Ads', 'YouTube', 'Instagram', 'Meta Ads'];
+  const platformNames = ['TikTok', 'Meta Ads', 'YouTube', 'Instagram', 'Meta Ads'];
+  const setting = filters.customSetting || filters.setting;
 
   return Array.from({ length: 5 }, (_, i) => {
     const s = baseSeed + i * 719;
+    const genre = filters.genres[i % Math.max(filters.genres.length, 1)] || primaryGenre;
+    const searchQuery = buildSearchQuery([genre], setting, filters.customKeywords);
     const impressions = seeded(s, 500_000, 25_000_000);
+
     return {
       id: `db-${i}`,
-      title: `Internal Creative #${String(i + 1).padStart(2, '0')} — ${(filters.customSetting || filters.setting || 'Drama')} Arc`,
+      title: `Internal Creative #${String(i + 1).padStart(2, '0')} — ${setting || 'Drama'} Arc`,
       hook: hooks[i % hooks.length],
-      platform: platforms[i],
-      link: [tiktokLink, youtubeLink, instagramLink, metaAdLink, socialPetaLink][i % 5](s),
+      platform: platformNames[i],
+      // No link — Google Drive link populates this when key is present
+      link: undefined,
+      searchQuery,
       performanceScore: seeded(s + 2, 72, 99),
-      genre: filters.genres[i % Math.max(filters.genres.length, 1)] || primaryGenre,
-      setting: filters.customSetting || filters.setting || 'General',
+      genre,
+      setting: setting || 'General',
       impressions,
       ctr: parseFloat((seeded(s + 9, 15, 85) / 10).toFixed(1)),
       status: statuses[i],
