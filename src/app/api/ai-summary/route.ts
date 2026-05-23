@@ -132,27 +132,37 @@ Write the full creative brief. Cite sources with real links.`;
       try {
         let messages: any[] = [{ role: 'user', content: userMessage }];
 
-        // If no external data — use Claude's own web_search
+        // If no external data — use Claude's own web_search via raw fetch (bypasses SDK types)
         if (!hasExternalData) {
-          const searchPass = await client.messages.create({
-            model: 'claude-sonnet-4-6',
-            max_tokens: 4096,
-            system: systemPrompt,
-            tools: [{ type: 'web_search_20250305', name: 'web_search' }] as any,
-            messages,
+          const searchRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': process.env.ANTHROPIC_API_KEY!,
+              'anthropic-version': '2023-06-01',
+              'anthropic-beta': 'web-search-2025-03-05',
+            },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-6',
+              max_tokens: 4096,
+              system: systemPrompt,
+              tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+              messages,
+            }),
           });
 
-          messages = [
-            ...messages,
-            { role: 'assistant', content: searchPass.content },
-          ];
-
-          const toolResults = searchPass.content
-            .filter((b: any) => b.type === 'tool_use')
-            .map((b: any) => ({ type: 'tool_result', tool_use_id: b.id, content: 'Search completed' }));
-
-          if (toolResults.length > 0) {
-            messages.push({ role: 'user', content: toolResults });
+          if (searchRes.ok) {
+            const searchData = await searchRes.json();
+            messages = [
+              ...messages,
+              { role: 'assistant', content: searchData.content },
+            ];
+            const toolResults = (searchData.content || [])
+              .filter((b: any) => b.type === 'tool_use')
+              .map((b: any) => ({ type: 'tool_result', tool_use_id: b.id, content: 'Search completed' }));
+            if (toolResults.length > 0) {
+              messages.push({ role: 'user', content: toolResults });
+            }
           }
         }
 
