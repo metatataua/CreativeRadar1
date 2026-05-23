@@ -3,28 +3,32 @@
 import { useState } from 'react';
 import { HorizontalContent, Platform } from '@/types';
 import { formatNumber } from '@/lib/sampleData';
+import { loadApiKeys } from '@/components/SettingsDrawer';
 
 interface Props {
   data: Record<Platform, HorizontalContent[]>;
 }
 
 const PLATFORM_ICONS: Record<Platform, string> = {
-  TikTok: '🎵',
-  Meta: '📘',
-  YouTube: '▶️',
-  Instagram: '📸',
+  TikTok: '🎵', Meta: '📘', YouTube: '▶️', Instagram: '📸',
 };
 
 const PLATFORM_COLORS: Record<Platform, string> = {
-  TikTok: 'platform-tiktok',
-  Meta: 'platform-meta',
-  YouTube: 'platform-youtube',
-  Instagram: 'platform-instagram',
+  TikTok: 'platform-tiktok', Meta: 'platform-meta',
+  YouTube: 'platform-youtube', Instagram: 'platform-instagram',
+};
+
+// Which API key unlocks each platform
+const PLATFORM_KEY: Record<Platform, 'apifyKey' | 'tiktokKey'> = {
+  TikTok: 'tiktokKey',
+  Meta: 'apifyKey',
+  YouTube: 'apifyKey',
+  Instagram: 'apifyKey',
 };
 
 const PLATFORM_ORDER: Platform[] = ['TikTok', 'Meta', 'YouTube', 'Instagram'];
 
-function PlatformRow({ item, idx }: { item: HorizontalContent; idx: number }) {
+function PlatformRow({ item, idx, hasLink }: { item: HorizontalContent; idx: number; hasLink: boolean }) {
   return (
     <tr className="table-row hover:bg-purple-900/10 transition-colors">
       <td className="table-cell text-purple-400/50 font-mono text-xs w-8">{idx + 1}</td>
@@ -32,18 +36,20 @@ function PlatformRow({ item, idx }: { item: HorizontalContent; idx: number }) {
         <div className="text-xs text-white font-medium leading-snug line-clamp-2 italic">
           "{item.hook}"
         </div>
-        <a
-          href={item.videoLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="link-pill mt-1 inline-flex"
-        >
-          <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-          </svg>
-          Open {item.platform}
-        </a>
+        {hasLink && item.videoLink && (
+          <a
+            href={item.videoLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link-pill mt-1 inline-flex"
+          >
+            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+            </svg>
+            Open {item.platform}
+          </a>
+        )}
       </td>
       <td className="table-cell text-right">
         <div className="text-sm text-white font-mono font-bold">{formatNumber(item.views)}</div>
@@ -65,7 +71,7 @@ function PlatformRow({ item, idx }: { item: HorizontalContent; idx: number }) {
   );
 }
 
-function PlatformSection({ platform, items }: { platform: Platform; items: HorizontalContent[] }) {
+function PlatformSection({ platform, items, hasLink }: { platform: Platform; items: HorizontalContent[]; hasLink: boolean }) {
   const [open, setOpen] = useState(true);
 
   return (
@@ -93,10 +99,14 @@ function PlatformSection({ platform, items }: { platform: Platform; items: Horiz
               &gt;1M+ views
             </span>
           )}
+          {!hasLink && (
+            <span className="text-xs text-white/25 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+              AI data
+            </span>
+          )}
           <svg
             className={`w-4 h-4 text-purple-400 transition-transform ${open ? 'rotate-180' : ''}`}
-            viewBox="0 0 20 20"
-            fill="currentColor"
+            viewBox="0 0 20 20" fill="currentColor"
           >
             <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
           </svg>
@@ -109,7 +119,7 @@ function PlatformSection({ platform, items }: { platform: Platform; items: Horiz
             <thead>
               <tr className="bg-purple-950/40">
                 <th className="table-cell text-left text-xs text-purple-400/60 font-medium w-8">#</th>
-                <th className="table-cell text-left text-xs text-purple-400/60 font-medium">Hook / Link</th>
+                <th className="table-cell text-left text-xs text-purple-400/60 font-medium">Hook{hasLink ? ' / Link' : ''}</th>
                 <th className="table-cell text-right text-xs text-purple-400/60 font-medium">Views</th>
                 <th className="table-cell text-right text-xs text-purple-400/60 font-medium">ER</th>
                 <th className="table-cell text-right text-xs text-purple-400/60 font-medium">Likes</th>
@@ -118,7 +128,7 @@ function PlatformSection({ platform, items }: { platform: Platform; items: Horiz
             </thead>
             <tbody>
               {items.map((item, i) => (
-                <PlatformRow key={item.id} item={item} idx={i} />
+                <PlatformRow key={item.id} item={item} idx={i} hasLink={hasLink} />
               ))}
             </tbody>
           </table>
@@ -129,6 +139,8 @@ function PlatformSection({ platform, items }: { platform: Platform; items: Horiz
 }
 
 export default function Block2HorizontalContent({ data }: Props) {
+  const keys = loadApiKeys();
+
   return (
     <div className="card animate-fade-in">
       <div className="card-header">
@@ -136,7 +148,7 @@ export default function Block2HorizontalContent({ data }: Props) {
           <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-base">🌐</div>
           <div>
             <h2 className="font-bold text-white text-sm">Block 2 — Horizontal & Organic Content</h2>
-            <p className="text-xs text-purple-400/80">Горизонтальний контент · TikTok · Meta · YouTube · Instagram</p>
+            <p className="text-xs text-purple-400/80">TikTok · Meta · YouTube · Instagram</p>
           </div>
         </div>
         <span className="badge bg-blue-500/10 text-blue-300 border border-blue-500/30 text-xs">
@@ -146,7 +158,12 @@ export default function Block2HorizontalContent({ data }: Props) {
 
       <div className="p-4 space-y-3">
         {PLATFORM_ORDER.map((platform) => (
-          <PlatformSection key={platform} platform={platform} items={data[platform] ?? []} />
+          <PlatformSection
+            key={platform}
+            platform={platform}
+            items={data[platform] ?? []}
+            hasLink={Boolean(keys[PLATFORM_KEY[platform]])}
+          />
         ))}
       </div>
     </div>
