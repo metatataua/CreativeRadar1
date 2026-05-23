@@ -138,7 +138,7 @@ Write the full creative brief. Cite sources with real links.`;
             model: 'claude-sonnet-4-6',
             max_tokens: 4096,
             system: systemPrompt,
-            tools: [{ type: 'web_search_20250305' as any, name: 'web_search' }],
+            tools: [{ type: 'web_search_20250305', name: 'web_search' }] as any,
             messages,
           });
 
