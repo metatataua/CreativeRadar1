@@ -19,7 +19,8 @@ export type PerformanceTier = 'Golden Frame' | 'Silver Tier' | 'Standard';
 export interface Creative {
   id: string;
   name: string;
-  activeLink: string;
+  activeLink?: string;       // only present when SocialPeta API key is connected
+  searchQuery?: string;      // used to fetch real link when key is available
   activeDays: number;
   impressions: number;
   ctr: number;
@@ -45,7 +46,8 @@ export interface HorizontalContent {
   platform: Platform;
   title: string;
   hook: string;
-  videoLink: string;
+  videoLink?: string;        // only present when Apify/TikTok API key is connected
+  searchQuery?: string;      // used to fetch real link when key is available
   views: number;
   engagementRate: number;
   likes: number;
@@ -58,7 +60,8 @@ export interface InternalCreative {
   title: string;
   hook: string;
   platform: string;
-  link: string;
+  link?: string;             // only present when Google Drive is connected
+  searchQuery?: string;      // used to fetch real link when key is available
   performanceScore: number;
   genre: string;
   setting: string;
