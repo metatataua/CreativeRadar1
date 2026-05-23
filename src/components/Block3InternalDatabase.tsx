@@ -2,6 +2,7 @@
 
 import { InternalCreative } from '@/types';
 import { formatNumber } from '@/lib/sampleData';
+import { loadApiKeys } from '@/components/SettingsDrawer';
 
 interface Props {
   data: InternalCreative[];
@@ -36,6 +37,10 @@ function ScoreBar({ score }: { score: number }) {
 }
 
 export default function Block3InternalDatabase({ data, googleDriveLink }: Props) {
+  const keys = loadApiKeys();
+  const hasDrive = Boolean(keys.googleDriveLink || googleDriveLink);
+  const driveUrl = keys.googleDriveLink || googleDriveLink;
+
   return (
     <div className="card animate-fade-in">
       <div className="card-header">
@@ -43,13 +48,13 @@ export default function Block3InternalDatabase({ data, googleDriveLink }: Props)
           <div className="w-8 h-8 rounded-lg bg-green-500/20 border border-green-500/30 flex items-center justify-center text-base">🗄️</div>
           <div>
             <h2 className="font-bold text-white text-sm">Block 3 — Internal Database</h2>
-            <p className="text-xs text-purple-400/80">Внутрішня база · Top 5 proprietary creatives</p>
+            <p className="text-xs text-purple-400/80">Top 5 proprietary creatives</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {googleDriveLink ? (
+          {hasDrive ? (
             <a
-              href={googleDriveLink}
+              href={driveUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="badge bg-green-500/10 text-green-300 border border-green-500/30 hover:bg-green-500/20 transition-colors cursor-pointer text-xs"
@@ -57,8 +62,8 @@ export default function Block3InternalDatabase({ data, googleDriveLink }: Props)
               📊 Drive Connected
             </a>
           ) : (
-            <span className="badge bg-slate-500/10 text-slate-400 border border-slate-500/30 text-xs">
-              🔗 No Drive Link
+            <span className="badge bg-white/5 text-white/30 border border-white/10 text-xs">
+              AI data
             </span>
           )}
         </div>
@@ -84,18 +89,20 @@ export default function Block3InternalDatabase({ data, googleDriveLink }: Props)
                 <td className="table-cell max-w-[200px]">
                   <div className="text-xs text-white font-medium leading-snug">{item.title}</div>
                   <div className="text-xs text-purple-400/70 mt-0.5 line-clamp-1 italic">"{item.hook}"</div>
-                  <a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="link-pill mt-1 inline-flex"
-                  >
-                    <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                    </svg>
-                    View Source
-                  </a>
+                  {hasDrive && item.link && (
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link-pill mt-1 inline-flex"
+                    >
+                      <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                        <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                      </svg>
+                      View Source
+                    </a>
+                  )}
                 </td>
                 <td className="table-cell">
                   <span className="text-xs text-slate-300 bg-slate-700/30 border border-slate-600/30 px-2 py-0.5 rounded-md">
@@ -120,7 +127,6 @@ export default function Block3InternalDatabase({ data, googleDriveLink }: Props)
         </table>
       </div>
 
-      {/* Summary footer */}
       <div className="px-5 py-3 border-t border-purple-900/20 flex gap-6 text-xs text-purple-400/60">
         <span>
           Avg score:{' '}
