@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { FilterState, ParsedData } from '@/types';
+import { loadApiKeys } from '@/components/SettingsDrawer';
 
 interface Props {
   filters: FilterState;
@@ -16,6 +17,7 @@ export default function Block4AISummary({ filters, data }: Props) {
   const [content, setContent] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
+  const [searchSource, setSearchSource] = useState('');
 
   const runAnalysis = useCallback(async () => {
     if (!data) return;
@@ -23,11 +25,18 @@ export default function Block4AISummary({ filters, data }: Props) {
     setError('');
     setStatus('loading');
 
+    const apiKeys = loadApiKeys();
+
+    // Determine which search source will be used
+    if (apiKeys.apifyKey) setSearchSource('Apify + Claude');
+    else if (apiKeys.braveSearchKey) setSearchSource('Brave Search + Claude');
+    else setSearchSource('Claude web search');
+
     try {
       const res = await fetch('/api/ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filters, data }),
+        body: JSON.stringify({ filters, data, apiKeys }),
       });
 
       if (!res.ok) {
@@ -81,7 +90,9 @@ export default function Block4AISummary({ filters, data }: Props) {
           <div className="w-8 h-8 rounded-lg bg-purple-600/30 border border-purple-500/30 flex items-center justify-center text-base">🧠</div>
           <div>
             <h2 className="font-bold text-white text-sm">Block 4 — AI Summary</h2>
-            <p className="text-xs text-purple-400/80">Automated Workspace · Powered by Claude</p>
+            <p className="text-xs text-purple-400/80">
+              {searchSource ? `Powered by ${searchSource}` : 'Automated Workspace · Powered by Claude'}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -110,11 +121,6 @@ export default function Block4AISummary({ filters, data }: Props) {
             {filters.customSetting || filters.setting}
           </span>
         )}
-        {filters.customKeywords && (
-          <span className="text-xs bg-purple-800/30 text-purple-300 border border-purple-700/30 px-2 py-0.5 rounded-full truncate max-w-[200px]">
-            "{filters.customKeywords}"
-          </span>
-        )}
       </div>
 
       {/* Body */}
@@ -126,13 +132,9 @@ export default function Block4AISummary({ filters, data }: Props) {
               {isEmpty ? 'Parse data first to unlock AI analysis' : 'Data ready for AI analysis'}
             </p>
             <p className="text-xs text-purple-400/60 mb-6 max-w-xs mx-auto">
-              Claude will synthesize patterns, winning hooks, and produce a plug-and-play creative brief.
+              Claude will search the web for real examples and generate an actionable hook playbook.
             </p>
-            <button
-              onClick={runAnalysis}
-              disabled={isEmpty}
-              className={`btn-primary ${isEmpty ? 'opacity-40 cursor-not-allowed' : ''}`}
-            >
+            <button onClick={runAnalysis} disabled={isEmpty} className={`btn-primary ${isEmpty ? 'opacity-40 cursor-not-allowed' : ''}`}>
               ✨ Generate AI Brief
             </button>
           </div>
@@ -145,7 +147,8 @@ export default function Block4AISummary({ filters, data }: Props) {
               <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-purple-500 animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center text-xl">🧠</div>
             </div>
-            <p className="text-sm text-purple-300">Initializing Claude analysis…</p>
+            <p className="text-sm text-purple-300">Searching the web for real data…</p>
+            <p className="text-xs text-purple-400/50 mt-1">{searchSource}</p>
           </div>
         )}
 
@@ -155,12 +158,7 @@ export default function Block4AISummary({ filters, data }: Props) {
               remarkPlugins={[remarkGfm]}
               components={{
                 a: ({ href, children }) => (
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-purple-400 hover:text-purple-300 underline underline-offset-2 transition-colors"
-                  >
+                  <a href={href} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 underline underline-offset-2 transition-colors">
                     {children}
                   </a>
                 ),
@@ -169,28 +167,12 @@ export default function Block4AISummary({ filters, data }: Props) {
                     {children}
                   </h3>
                 ),
-                ul: ({ children }) => (
-                  <ul className="space-y-2 mb-4 pl-4">{children}</ul>
-                ),
-                li: ({ children }) => (
-                  <li className="text-slate-300 text-sm leading-relaxed list-disc">{children}</li>
-                ),
-                p: ({ children }) => (
-                  <p className="text-slate-300 text-sm leading-relaxed mb-3">{children}</p>
-                ),
-                strong: ({ children }) => (
-                  <strong className="text-white font-semibold">{children}</strong>
-                ),
-                code: ({ children }) => (
-                  <code className="bg-purple-900/30 text-purple-300 px-1.5 py-0.5 rounded text-xs font-mono">
-                    {children}
-                  </code>
-                ),
-                blockquote: ({ children }) => (
-                  <blockquote className="border-l-2 border-purple-500 pl-4 my-3 italic text-slate-400 text-sm">
-                    {children}
-                  </blockquote>
-                ),
+                ul: ({ children }) => <ul className="space-y-2 mb-4 pl-4">{children}</ul>,
+                li: ({ children }) => <li className="text-slate-300 text-sm leading-relaxed list-disc">{children}</li>,
+                p: ({ children }) => <p className="text-slate-300 text-sm leading-relaxed mb-3">{children}</p>,
+                strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
+                code: ({ children }) => <code className="bg-purple-900/30 text-purple-300 px-1.5 py-0.5 rounded text-xs font-mono">{children}</code>,
+                blockquote: ({ children }) => <blockquote className="border-l-2 border-purple-500 pl-4 my-3 italic text-slate-400 text-sm">{children}</blockquote>,
               }}
             >
               {content}
@@ -206,33 +188,25 @@ export default function Block4AISummary({ filters, data }: Props) {
             <p className="text-red-400 font-medium text-sm mb-1">⚠ AI Analysis Failed</p>
             <p className="text-red-300/70 text-xs">{error}</p>
             <p className="text-xs text-purple-400/60 mt-3">
-              Make sure <code className="text-purple-300">ANTHROPIC_API_KEY</code> is set in your{' '}
-              <code className="text-purple-300">.env.local</code> file.
+              Make sure <code className="text-purple-300">ANTHROPIC_API_KEY</code> is set in Vercel environment variables.
             </p>
-            <button onClick={runAnalysis} className="btn-secondary mt-3">
-              Retry
-            </button>
+            <button onClick={runAnalysis} className="btn-secondary mt-3">Retry</button>
           </div>
         )}
       </div>
 
-      {/* Footer CTA */}
       {(status === 'done' || status === 'error') && (
         <div className="px-5 py-3 border-t border-purple-900/20 flex justify-between items-center">
           <span className="text-xs text-purple-400/50">
-            Based on {filters.genres.length} genre filter{filters.genres.length !== 1 ? 's' : ''}
+            {filters.genres.length} genre filter{filters.genres.length !== 1 ? 's' : ''} · {searchSource}
           </span>
-          <button onClick={runAnalysis} className="btn-secondary">
-            ↺ Re-generate
-          </button>
+          <button onClick={runAnalysis} className="btn-secondary">↺ Re-generate</button>
         </div>
       )}
 
       {status === 'idle' && content === '' && !isEmpty && (
         <div className="px-5 py-3 border-t border-purple-900/20">
-          <button onClick={runAnalysis} className="btn-primary w-full">
-            ✨ Generate AI Brief
-          </button>
+          <button onClick={runAnalysis} className="btn-primary w-full">✨ Generate AI Brief</button>
         </div>
       )}
     </div>
