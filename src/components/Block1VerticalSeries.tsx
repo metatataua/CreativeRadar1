@@ -3,38 +3,39 @@
 import { useState } from 'react';
 import { Series, Creative } from '@/types';
 import { formatNumber, formatMoney } from '@/lib/sampleData';
+import { loadApiKeys } from '@/components/SettingsDrawer';
 
 interface Props {
   data: Series[];
 }
 
 function TierBadge({ tier }: { tier: Creative['performanceTier'] }) {
-  if (tier === 'Golden Frame')
-    return <span className="badge-golden">✦ Golden Frame</span>;
-  if (tier === 'Silver Tier')
-    return <span className="badge-silver">◆ Silver Tier</span>;
+  if (tier === 'Golden Frame') return <span className="badge-golden">✦ Golden Frame</span>;
+  if (tier === 'Silver Tier') return <span className="badge-silver">◆ Silver Tier</span>;
   return <span className="badge-standard">● Standard</span>;
 }
 
-function CreativeRow({ creative, idx }: { creative: Creative; idx: number }) {
+function CreativeRow({ creative, idx, hasSocialPeta }: { creative: Creative; idx: number; hasSocialPeta: boolean }) {
   return (
     <tr className="table-row hover:bg-purple-900/10 transition-colors">
       <td className="table-cell text-purple-400/60 font-mono text-xs w-8">{idx + 1}</td>
       <td className="table-cell">
         <div className="text-xs text-white font-medium leading-snug">{creative.name}</div>
         <div className="text-xs text-purple-400/70 mt-0.5 line-clamp-1 italic">"{creative.hook}"</div>
-        <a
-          href={creative.activeLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="link-pill mt-1 inline-flex"
-        >
-          <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-          </svg>
-          View on SocialPeta
-        </a>
+        {hasSocialPeta && creative.activeLink && (
+          <a
+            href={creative.activeLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link-pill mt-1 inline-flex"
+          >
+            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+            </svg>
+            View on SocialPeta
+          </a>
+        )}
       </td>
       <td className="table-cell text-center">
         <TierBadge tier={creative.performanceTier} />
@@ -51,12 +52,11 @@ function CreativeRow({ creative, idx }: { creative: Creative; idx: number }) {
   );
 }
 
-function SeriesCard({ series, rank }: { series: Series; rank: number }) {
+function SeriesCard({ series, rank, hasSocialPeta }: { series: Series; rank: number; hasSocialPeta: boolean }) {
   const [expanded, setExpanded] = useState(rank === 0);
 
   return (
     <div className="border border-purple-900/30 rounded-xl overflow-hidden">
-      {/* Series header */}
       <button
         onClick={() => setExpanded((v) => !v)}
         className="w-full px-5 py-4 flex items-center gap-4 hover:bg-purple-900/10 transition-colors text-left"
@@ -78,14 +78,12 @@ function SeriesCard({ series, rank }: { series: Series; rank: number }) {
         </div>
         <svg
           className={`w-4 h-4 text-purple-400 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
-          viewBox="0 0 20 20"
-          fill="currentColor"
+          viewBox="0 0 20 20" fill="currentColor"
         >
           <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
         </svg>
       </button>
 
-      {/* Creatives table */}
       {expanded && (
         <div className="border-t border-purple-900/30 overflow-x-auto animate-fade-in">
           <table className="w-full min-w-[540px]">
@@ -100,7 +98,7 @@ function SeriesCard({ series, rank }: { series: Series; rank: number }) {
             </thead>
             <tbody>
               {series.topCreatives.map((creative, i) => (
-                <CreativeRow key={creative.id} creative={creative} idx={i} />
+                <CreativeRow key={creative.id} creative={creative} idx={i} hasSocialPeta={hasSocialPeta} />
               ))}
             </tbody>
           </table>
@@ -111,6 +109,8 @@ function SeriesCard({ series, rank }: { series: Series; rank: number }) {
 }
 
 export default function Block1VerticalSeries({ data }: Props) {
+  const hasSocialPeta = Boolean(loadApiKeys().socialPetaKey);
+
   return (
     <div className="card animate-fade-in">
       <div className="card-header">
@@ -118,17 +118,23 @@ export default function Block1VerticalSeries({ data }: Props) {
           <div className="w-8 h-8 rounded-lg bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center text-base">📱</div>
           <div>
             <h2 className="font-bold text-white text-sm">Block 1 — Vertical Series Analytics</h2>
-            <p className="text-xs text-purple-400/80">Вертикальні серіали · Top 5 by Impressions × Run Duration</p>
+            <p className="text-xs text-purple-400/80">Top 5 by Impressions × Run Duration</p>
           </div>
         </div>
-        <span className="badge bg-yellow-500/10 text-yellow-300 border border-yellow-500/30 text-xs">
-          SocialPeta
-        </span>
+        {hasSocialPeta ? (
+          <span className="badge bg-yellow-500/10 text-yellow-300 border border-yellow-500/30 text-xs">
+            SocialPeta
+          </span>
+        ) : (
+          <span className="badge bg-white/5 text-white/30 border border-white/10 text-xs">
+            AI data
+          </span>
+        )}
       </div>
 
       <div className="p-4 space-y-3">
         {data.map((series, i) => (
-          <SeriesCard key={series.id} series={series} rank={i} />
+          <SeriesCard key={series.id} series={series} rank={i} hasSocialPeta={hasSocialPeta} />
         ))}
       </div>
     </div>
