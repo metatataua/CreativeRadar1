@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-[#0a0a1a] text-white antialiased;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(124, 58, 237, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-[#12122a];
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-purple-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-purple-500;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-[#12122a] border border-purple-900/30 rounded-2xl overflow-hidden;
+  }
+
+  .card-header {
+    @apply px-5 py-4 border-b border-purple-900/30 flex items-center justify-between;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-golden {
+    @apply badge bg-yellow-500/20 text-yellow-300 border border-yellow-500/30;
+  }
+
+  .badge-silver {
+    @apply badge bg-slate-400/20 text-slate-300 border border-slate-400/30;
+  }
+
+  .badge-standard {
+    @apply badge bg-slate-600/20 text-slate-400 border border-slate-600/30;
+  }
+
+  .chip {
+    @apply px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer
+           border transition-all duration-150 select-none;
+  }
+
+  .chip-inactive {
+    @apply chip border-purple-900/50 bg-purple-950/30 text-purple-300
+           hover:border-purple-600 hover:bg-purple-900/30;
+  }
+
+  .chip-active {
+    @apply chip border-purple-500 bg-purple-600/30 text-white
+           shadow-[0_0_12px_rgba(139,92,246,0.3)];
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-semibold
+           rounded-xl transition-all duration-150 active:scale-95
+           shadow-[0_0_20px_rgba(139,92,246,0.35)] hover:shadow-[0_0_28px_rgba(139,92,246,0.5)];
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-purple-900/40 hover:bg-purple-800/50 text-purple-200
+           border border-purple-700/40 rounded-lg transition-all duration-150 text-sm;
+  }
+
+  .input-field {
+    @apply w-full bg-[#1a1a35] border border-purple-900/40 text-white
+           rounded-xl px-4 py-2.5 text-sm placeholder-purple-400/50
+           focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30
+           transition-all duration-150;
+  }
+
+  .table-row {
+    @apply border-b border-purple-900/20 last:border-0;
+  }
+
+  .table-cell {
+    @apply px-4 py-3 text-sm;
+  }
+
+  .link-pill {
+    @apply inline-flex items-center gap-1 text-purple-400 hover:text-purple-300
+           underline underline-offset-2 transition-colors duration-100 text-xs;
+  }
+
+  .platform-tag {
+    @apply badge text-xs font-bold uppercase tracking-wide;
+  }
+
+  .platform-tiktok {
+    @apply platform-tag bg-pink-500/15 text-pink-300 border border-pink-500/30;
+  }
+
+  .platform-meta {
+    @apply platform-tag bg-blue-500/15 text-blue-300 border border-blue-500/30;
+  }
+
+  .platform-youtube {
+    @apply platform-tag bg-red-500/15 text-red-300 border border-red-500/30;
+  }
+
+  .platform-instagram {
+    @apply platform-tag bg-orange-500/15 text-orange-300 border border-orange-500/30;
+  }
+
+  /* Markdown output styles */
+  .prose-custom h3 {
+    @apply text-purple-300 font-bold text-base mt-6 mb-3 first:mt-0 flex items-center gap-2;
+  }
+
+  .prose-custom p {
+    @apply text-slate-300 text-sm leading-relaxed mb-3;
+  }
+
+  .prose-custom ul {
+    @apply space-y-1.5 mb-4;
+  }
+
+  .prose-custom li {
+    @apply text-slate-300 text-sm leading-relaxed pl-2;
+  }
+
+  .prose-custom strong {
+    @apply text-white font-semibold;
+  }
+
+  .prose-custom a {
+    @apply text-purple-400 hover:text-purple-300 underline underline-offset-2 transition-colors;
+  }
+
+  .prose-custom code {
+    @apply bg-purple-900/30 text-purple-300 px-1.5 py-0.5 rounded text-xs font-mono;
+  }
+
+  .prose-custom blockquote {
+    @apply border-l-2 border-purple-500 pl-4 my-3 italic text-slate-400 text-sm;
+  }
+}
+
+@layer utilities {
+  .glow-purple {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-purple-400 to-violet-300 bg-clip-text text-transparent;
+  }
+}
